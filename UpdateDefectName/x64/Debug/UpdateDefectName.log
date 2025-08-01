@@ -1,0 +1,13 @@
+﻿  UpdateDefectNameDlg.cpp
+d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(296): warning C4305: “=”: 从“double”到“float”截断
+d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(307): warning C4305: “=”: 从“double”到“float”截断
+d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(297): warning C4474: fscanf_s: 格式字符串中传递的参数太多
+  d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(297): note: 占位符和其参数预计 7 可变参数，但提供的却是 8 参数
+d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(294): warning C4101: “strName”: 未引用的局部变量
+d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(396): warning C4305: “=”: 从“double”到“float”截断
+d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(407): warning C4305: “=”: 从“double”到“float”截断
+d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(397): warning C4474: fscanf_s: 格式字符串中传递的参数太多
+  d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(397): note: 占位符和其参数预计 7 可变参数，但提供的却是 8 参数
+d:\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(394): warning C4101: “strName”: 未引用的局部变量
+  UpdateDefectName.vcxproj -> D:\UpdateDefectName\x64\Debug\UpdateDefectName.exe
+  UpdateDefectName.vcxproj -> D:\UpdateDefectName\x64\Debug\UpdateDefectName.pdb (Partial PDB)

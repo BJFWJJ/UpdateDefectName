@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.33026.149
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "UpdateDefectName", "UpdateDefectName\UpdateDefectName.vcxproj", "{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}.Debug|x64.ActiveCfg = Debug|x64
+		{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}.Debug|x64.Build.0 = Debug|x64
+		{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}.Debug|x86.ActiveCfg = Debug|Win32
+		{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}.Debug|x86.Build.0 = Debug|Win32
+		{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}.Release|x64.ActiveCfg = Release|x64
+		{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}.Release|x64.Build.0 = Release|x64
+		{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}.Release|x86.ActiveCfg = Release|Win32
+		{EAE3ACE3-EBAE-4353-8450-540FBCAFBEE1}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B40921CC-DD1F-4643-877C-025CA9685DE6}
+	EndGlobalSection
+EndGlobal
