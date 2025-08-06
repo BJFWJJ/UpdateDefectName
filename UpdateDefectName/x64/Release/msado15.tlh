@@ -1,9 +1,9 @@
-﻿// Created by Microsoft (R) C/C++ Compiler Version 14.10.25027.0 (6e94fcd6).
+﻿// Created by Microsoft (R) C/C++ Compiler Version 14.16.27051.0 (a75f4a5d).
 //
-// d:\updatedefectname\updatedefectname\x64\release\msado15.tlh
+// f:\北京防伪机检程序\训练站\updatedefectname\updatedefectname\x64\release\msado15.tlh
 //
 // C++ source equivalent of type library C:\Program Files\Common Files\System\ADO\msado15.dll
-// compiler-generated file created 07/08/25 at 17:24:19 - DO NOT EDIT!
+// compiler-generated file created 08/06/25 at 13:58:09 - DO NOT EDIT!
 
 #pragma once
 #pragma pack(push, 8)
@@ -5022,6 +5022,6 @@ _Record_Deprecated : _ADO
 // Wrapper method implementations
 //
 
-#include "d:\updatedefectname\updatedefectname\x64\release\msado15.tli"
+#include "f:\北京防伪机检程序\训练站\updatedefectname\updatedefectname\x64\release\msado15.tli"
 
 #pragma pack(pop)

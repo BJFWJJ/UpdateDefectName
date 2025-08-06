@@ -20,6 +20,10 @@ CUpdateDefectNameDlg::CUpdateDefectNameDlg(CWnd* pParent /*=nullptr*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
 	m_pAdo = nullptr;
+	
+	CString strPathConfig = _T("F:\\Inference\\path_config.ini");
+	GetPrivateProfileString(_T("param"), _T("file_path"), _T("NULL"), m_strFilePath.GetBuffer(128), 128, strPathConfig);
+
 }
 
 CUpdateDefectNameDlg::~CUpdateDefectNameDlg()
@@ -73,11 +77,8 @@ BOOL CUpdateDefectNameDlg::OnInitDialog()
 		m_strDefectName[i].ReleaseBuffer();
 	}
 
-	//SetTimer(1, 300000, NULL);		//每5分钟执行一次
-	SetTimer(1, 10000, NULL);		//每10秒执行一次
-	//m_listInfo.
-	//最小化到托盘
-	SetTimer(3, 5000, NULL);
+	SetTimer(1, 10000, nullptr);		//每10秒执行一次
+	SetTimer(3, 5000, nullptr);			//最小化到托盘
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -173,26 +174,7 @@ void CUpdateDefectNameDlg::OnTimer(UINT_PTR nIDEvent)
 
 	case 2:
 	{
-		int n_IsInfer = GetPrivateProfileInt(_T("param"), _T("is_infer"), 0, m_strNeelConfigPath);
-		if (n_IsInfer == 1)
-		{
-			// 关闭外部程序		//.exe结尾的程序uccess
-			TerminateProcessByName("mintty.exe");
-			AddOneMsg(_T("缺陷分类完成，正在写入数据库..."));
-			WritePrivateProfileString(_T("param"), _T("is_infer"), "0", m_strNeelConfigPath);
-
-			//执行自动更新数据库操作
-			AutomaticUpdateDatabase();
-		}
-		else if (n_IsInfer == 2)
-		{
-			TerminateProcessByName("mintty.exe");
-			AddOneMsg(_T("训练异常，请重试！"));
-		}
-		else
-		{
-			return;
-		}
+		HandleInferProcess();
 		KillTimer(2);
 	}
 	break;
@@ -268,59 +250,88 @@ void CUpdateDefectNameDlg::OnBnClickedButtonOpen()
 	CFileDialog dlgOpenFile(TRUE, 0, 0, OFN_NOCHANGEDIR, _TEXT("CSV File (*.ini)|*.ini||"), this);
 	if (dlgOpenFile.DoModal() == IDOK)
 	{
-		CString strIniPath;
-		strIniPath = dlgOpenFile.GetPathName();
-		GetDlgItem(IDC_STATIC_PATH)->SetWindowText(strIniPath);
+		CString strReelConfigPath;
+		strReelConfigPath = dlgOpenFile.GetPathName();
+		GetDlgItem(IDC_STATIC_PATH)->SetWindowText(strReelConfigPath);
 
-		CString strReelTable;
-		GetPrivateProfileString(_T("param"), _T("reel_name"), _T("NULL"), strReelTable.GetBuffer(128), 128, strIniPath);
-		CString strCsvPath;
-		strCsvPath.Format(_T("%s\\result.csv"), dlgOpenFile.GetFolderPath());
-		FILE *pFile = NULL;
-		fopen_s(&pFile, strCsvPath, "r");
+		CString strReelTable,strReelName;
+		GetPrivateProfileString(_T("param"), _T("reel_table"), _T("NULL"), strReelTable.GetBuffer(128), 128, strReelConfigPath);
 
 		CString strInfo;
-		strInfo.Format(_T("正在写入数据库，请稍后..."));
+		strInfo.Format(_T("正在写入数据库..."));
 		AddOneMsg(strInfo);
 
-		
-		if (pFile)
+		bool bWriteToDB = WriteToDB(strReelTable);
+		if (bWriteToDB)
 		{
-			ConnectToDatabase(m_pAdo);
-
-			int nFileIndex = 0;
-			int nDefectIndex = 0;
-			int nDefectLevel = 0;
-			char strName[64];
-			float fCentreX, fCentreY, fLength, fHeight;
-			fCentreX = fCentreY = fLength = fHeight = -9.9999;
-			while (fscanf_s(pFile, "%d,%d,%d,%f,%f,%f,%f\n", &nFileIndex, &nDefectIndex, &nDefectLevel, &fCentreX, &fCentreY, &fLength, &fHeight, 64) != EOF)
-			{
-				CString strRectCoordinate;
-				strRectCoordinate.Format(_T("%f,%f,%f,%f"), fCentreX, fCentreY, fLength, fHeight);
-				if (strRectCoordinate.Find(_T("-9.9999")) >= 0)	//找到了-9.9999这个值	
-				{
-					strRectCoordinate.Format(_T(""));
-				}
-				UpdateDefectInfo(m_pAdo, strReelTable, m_strDefectName[nDefectIndex], nFileIndex, nDefectLevel, strRectCoordinate);
-
-				fCentreX = fCentreY = fLength = fHeight = -9.9999;
-			}
-			fclose(pFile);
-
-			DisConnectFromDatabase(m_pAdo);
-
-			WritePrivateProfileString(_T("param"), _T("is_execute"), "1", strIniPath);
-
-			MessageBox(_T("数据库完成更新。"), _T("提示"));
-			CString strInfo;
-			strInfo.Format(_T("%s数据库完成手动更新！"), strReelTable);
-			AddOneMsg(strInfo);
+			strInfo.Format(_T("数据表：%s 完成手动更新！"), strReelTable);
 		}
+		else
+		{
+			strInfo.Format(_T("数据表：%s 手动更新失败，请重试或检查文件！"), strReelTable);
+		}
+		AddOneMsg(strInfo);
 		strReelTable.ReleaseBuffer();
 	}
 }
 
+//自动更新数据库
+void CUpdateDefectNameDlg::AutomaticUpdateDatabase(CString strReelTable)
+{
+	CString strInfo;
+	bool bWriteToDB = WriteToDB(strReelTable);
+	if (bWriteToDB)
+	{
+		strInfo.Format(_T("数据表：%s 完成自动更新！"), strReelTable);
+	}
+	else
+	{
+		strInfo.Format(_T("数据表：%s 自动更新失败，请重试或手动更新！"), strReelTable);
+	}
+	AddOneMsg(strInfo);
+	strReelTable.ReleaseBuffer();
+}
+
+bool CUpdateDefectNameDlg::WriteToDB(CString strReelTable)
+{
+	CString strCsvPath;
+	strCsvPath.Format(_T("F:\\Inference\\%s\\result.csv"), strReelTable); 
+
+	FILE *pFile = NULL;
+	fopen_s(&pFile, strCsvPath, "r");
+	if (pFile)
+	{
+		ConnectToDatabase(m_pAdo);
+
+		int nFileIndex = 0;
+		int nDefectIndex = 0;
+		int nDefectLevel = 0;
+		char strName[64];
+		float fCentreX, fCentreY, fLength, fHeight;
+		fCentreX = fCentreY = fLength = fHeight = -9.9999;
+		while (fscanf_s(pFile, "%d,%d,%d,%f,%f,%f,%f\n", &nFileIndex, &nDefectIndex, &nDefectLevel, &fCentreX, &fCentreY, &fLength, &fHeight, 64) != EOF)
+		{
+			CString strRectCoordinate;
+			strRectCoordinate.Format(_T("%f,%f,%f,%f"), fCentreX, fCentreY, fLength, fHeight);
+			if (strRectCoordinate.Find(_T("-9.9999")) >= 0)	//找到了-9.9999这个值	
+			{
+				strRectCoordinate.Format(_T(""));
+			}
+			UpdateDefectInfo(m_pAdo, strReelTable, m_strDefectName[nDefectIndex], nFileIndex, nDefectLevel, strRectCoordinate);
+
+			fCentreX = fCentreY = fLength = fHeight = -9.9999;
+		}
+		fclose(pFile);
+
+		DisConnectFromDatabase(m_pAdo);
+
+		WritePrivateProfileString(_T("param"), _T("is_execute"), "1", m_strReelConfigPath);
+	}
+	else
+		return false;
+
+	return true;
+}
 
 void CUpdateDefectNameDlg::OnBnClickedCancel()
 {
@@ -337,93 +348,70 @@ void CUpdateDefectNameDlg::OnBnClickedOk()
 
 void CUpdateDefectNameDlg::ExistNewReel()
 {
-	CString strConfigPath = _T("F:\\Inference\\config.ini");
-	CString strGetFilePath;
-	GetPrivateProfileString(_T("param"), _T("file_path"), _T("NULL"), strGetFilePath.GetBuffer(128), 128, strConfigPath);
-	SetTimer(2, 2000, NULL);	//2秒钟执行一次
+	//1.判断是否获取到最新文件
+	CString strPathConfig = _T("F:\\Inference\\path_config.ini");
+	CString strGetFilePath;		//保存path_config.ini中最新获取到的文件路径
+	CString strLog;
+	GetPrivateProfileString(_T("param"), _T("file_path"), _T("NULL"), strGetFilePath.GetBuffer(128), 128, strPathConfig);
 
-	//if (nConfigNewReel)
-	//{
-		if (m_strFilePath != strGetFilePath)
+	if (m_strFilePath != strGetFilePath)
+	{
+		m_strFilePath = strGetFilePath;
+		m_strReelConfigPath.Format(_T("%s\\config.ini"), strGetFilePath);
+		//GetPrivateProfileString(_T("param"), _T("reel_name"), _T("NULL"), m_strReelName.GetBuffer(128), 128, m_strReelConfigPath);
+		GetPrivateProfileString(_T("param"), _T("reel_table"), _T("NULL"), m_strReelTable.GetBuffer(128), 128, m_strReelConfigPath);
+		if (m_strReelTable != _T("NULL"))
 		{
-			m_strFilePath = strGetFilePath;
-			m_strNeelConfigPath.Format(_T("%s\\config.ini"), m_strFilePath);
+			
+			strLog.Format(_T("找到新文件：%s。"), m_strReelTable);
+			AddOneMsg(strLog);
 
-			GetPrivateProfileString(_T("param"), _T("reel_name"), _T("NULL"), m_strReelName.GetBuffer(128), 128, m_strNeelConfigPath);
-
-			bool b_IsExecute = GetPrivateProfileInt(_T("param"), _T("is_execute"), 0, m_strNeelConfigPath);
-			if (!b_IsExecute)		//IsExecute=0说明未执行完成，为1执行完成
+			//2.进行Python深度学习步骤
+			bool b_IsExecute = GetPrivateProfileInt(_T("param"), _T("is_execute"), 0, m_strReelConfigPath);
+			if (!b_IsExecute)		//IsExecute=0说明深度学习分类分级未执行完成，为1执行完成
 			{
-				//执行后续操作，Python缺陷分类
-				CString strLog;
-				strLog.Format(_T("找到新文件%s。"), strGetFilePath);
+				ShellExecute(NULL, _T("open"), _T("C:\\Users\\adv\\Desktop\\test_script.sh"), NULL, NULL, SW_SHOWNORMAL);	//后续移动到配置文件里
+				strLog.Format(_T("%s 正在进行缺陷分类分级。"), m_strReelTable);
+				AddOneMsg(_T(strLog));
+			}
+			else
+			{
+				strLog.Format(_T("文件：%s 已经进行了缺陷分级分类。"), m_strReelTable);
 				AddOneMsg(strLog);
-
-				ShellExecute(NULL, _T("open"), _T("C:\\Users\\adv\\Desktop\\test_script.sh"), NULL, NULL, SW_SHOWNORMAL);
-				AddOneMsg(_T("正在进行缺陷分类。"));
-
-				//SetTimer(2, 480000, NULL);	//8分钟后关闭
-				
 			}
 		}
+
 		else
 		{
-			//AddOneMsg(_T("未找到新文件。"));		//测试用，正式版本注释掉
 			return;
 		}
+	}
+	//3.循环判断Python深度学习步骤是否完成，完成立即关闭
+	SetTimer(2, 2000, nullptr);
 }
 
-//自动更新数据库
-void CUpdateDefectNameDlg::AutomaticUpdateDatabase()
+void CUpdateDefectNameDlg::HandleInferProcess()
 {
-	CString strIniPath;
-	strIniPath.Format(_T("%s\\config.ini"), m_strFilePath);
-	CString strReelTable;
-	GetPrivateProfileString(_T("param"), _T("reel_name"), _T("NULL"), strReelTable.GetBuffer(128), 128, strIniPath);
-	CString strCsvPath;
-	strCsvPath.Format(_T("%s\\result.csv"), m_strFilePath);
-	FILE *pFile = NULL;
-	fopen_s(&pFile, strCsvPath, "r");
-	if (pFile)
+	int nIsInfer = GetPrivateProfileInt(_T("param"), _T("is_infer"), 0, m_strReelConfigPath);
+	if (nIsInfer == 1)
 	{
-		ConnectToDatabase(m_pAdo);
-
-		int nFileIndex = 0;
-		int nDefectIndex = 0;
-		int nDefectLevel = 0;
-		char strName[64];
-		float fCentreX, fCentreY, fLength, fHeight;
-		fCentreX = fCentreY = fLength = fHeight = -9.9999;
-		while (fscanf_s(pFile, "%d,%d,%d,%f,%f,%f,%f\n", &nFileIndex, &nDefectIndex, &nDefectLevel,&fCentreX,&fCentreY,&fLength,&fHeight, 64) != EOF)
-		{
-			CString strRectCoordinate;
-			strRectCoordinate.Format(_T("%f,%f,%f,%f"), fCentreX, fCentreY, fLength, fHeight);
-			if (strRectCoordinate.Find(_T("-9.9999")) >= 0)	//找到了-9.9999这个值	
-			{
-				strRectCoordinate.Format(_T(""));
-			}
-			UpdateDefectInfo(m_pAdo, strReelTable, m_strDefectName[nDefectIndex], nFileIndex, nDefectLevel, strRectCoordinate);
-
-			fCentreX = fCentreY = fLength = fHeight = -9.9999;
-		}
-		fclose(pFile);
-
-		DisConnectFromDatabase(m_pAdo);
-
-		WritePrivateProfileString(_T("param"), _T("is_execute"), "1", m_strNeelConfigPath);
-
-		CString strInfo;
-		strInfo.Format(_T("卷号%s数据库完成自动更新！"), m_strReelName);
-		AddOneMsg(strInfo);
-
+		// 关闭外部程序		//.exe结尾的程序uccess
+		TerminateProcessByName("mintty.exe");
+		AddOneMsg(_T("缺陷分类完成，正在写入数据库..."));
+		WritePrivateProfileString(_T("param"), _T("is_infer"), "0", m_strReelConfigPath);
+		CString strReelTable;
+		strReelTable = m_strReelTable;
+		AutomaticUpdateDatabase(strReelTable);//执行自动更新数据库操作
+	}
+	else if (nIsInfer == 2)
+	{
+		TerminateProcessByName("mintty.exe");
+		AddOneMsg(_T("训练异常，请重试！"));
 	}
 	else
 	{
-		CString strInfo;
-		strInfo.Format(_T("卷号%s数据库更新失败，请重试或手动更新！"), m_strReelName);
-		AddOneMsg(strInfo);
+		return;
 	}
-	strReelTable.ReleaseBuffer();
 }
 
 void CUpdateDefectNameDlg::AddOneMsg(CString strInfo)
@@ -543,12 +531,13 @@ LRESULT CUpdateDefectNameDlg::OnShowTask(WPARAM wParam, LPARAM lParam)
 		return 1;
 	switch (lParam)
 	{
-	case WM_LBUTTONDBLCLK://左键单击显示主界面
-	{
-		this->ShowWindow(SW_SHOW);
-		SetForegroundWindow();
-		DeleteTray();
-	}break;
+		case WM_LBUTTONDBLCLK://左键单击显示主界面
+		{
+			this->ShowWindow(SW_SHOW);
+			SetForegroundWindow();
+			DeleteTray();
+		}
+		break;
 	}
 	return 0;
 }

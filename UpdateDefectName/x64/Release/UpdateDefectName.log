@@ -1,3 +1,13 @@
-﻿LINK : warning LNK4075: 忽略“/INCREMENTAL”(由于“/OPT:ICF”规范)
+﻿  pch.cpp
+  ADOLinkToBase.cpp
+  UpdateDefectName.cpp
+  UpdateDefectNameDlg.cpp
+f:\北京防伪机检程序\训练站\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(311): warning C4305: “=”: 从“double”到“float”截断
+f:\北京防伪机检程序\训练站\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(312): warning C4474: fscanf_s: 格式字符串中传递的参数太多
+  f:\北京防伪机检程序\训练站\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(312): note: 占位符和其参数预计 7 可变参数，但提供的却是 8 参数
+f:\北京防伪机检程序\训练站\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(322): warning C4305: “=”: 从“double”到“float”截断
+f:\北京防伪机检程序\训练站\updatedefectname\updatedefectname\updatedefectnamedlg.cpp(309): warning C4101: “strName”: 未引用的局部变量
+  正在生成代码...
+LINK : warning LNK4075: 忽略“/INCREMENTAL”(由于“/OPT:ICF”规范)
 ADOLinkToBase.obj : warning LNK4075: 忽略“/EDITANDCONTINUE”(由于“/OPT:ICF”规范)
-  UpdateDefectName.vcxproj -> D:\UpdateDefectName\x64\Release\UpdateDefectName.exe
+  UpdateDefectName.vcxproj -> F:\北京防伪机检程序\训练站\UpdateDefectName\x64\Release\UpdateDefectName.exe
